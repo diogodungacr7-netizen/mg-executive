@@ -2,132 +2,80 @@
 import { useState } from 'react'
 
 export default function Home(){
-  const [logado, setLogado] = useState(false)
+  const [showLogin, setShowLogin] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState('')
-  const [showReservas, setShowReservas] = useState(false)
 
   const fazerLogin = () => {
-    setErro('')
-    const emailLimpo = email.toLowerCase().trim()
-    const senhaLimpa = senha.trim()
-    
-    if(emailLimpo === 'dioguin01267@gmail.com' && senhaLimpa === 'dioguin012!'){
-      setLogado(true)
+    const e = email.toLowerCase().trim()
+    const s = senha.trim()
+    if((e === 'dioguin01267@gmail.com' || e === 'diogodungacr7@gmail.com') && s === 'dioguin012!'){
+      setIsAdmin(true)
+      setShowLogin(false)
+      setErro('')
     } else {
-      setErro('Email ou senha incorretos! Tente: dioguin01267@gmail.com / dioguin012!')
+      setErro('Email ou senha errados!')
     }
   }
 
-  // TELA DE LOGIN OBRIGATÓRIA
-  if(!logado){
-    return(
-      <div style={{minHeight:'100vh', background:'black', display:'flex', alignItems:'center', justifyContent:'center', color:'white', fontFamily:'sans-serif', padding:20}}>
-        <div style={{background:'#0a0a0a', padding:40, width:'100%', maxWidth:400, border:'1px solid #FFC300', boxShadow:'0 0 30px rgba(255,195,0,0.2)'}}>
-          <h1 style={{color:'#FFC300', fontSize:28, fontWeight:900, letterSpacing:4, textAlign:'center'}}>MG <span style={{color:'white'}}>EXECUTIVE</span></h1>
-          <p style={{textAlign:'center', color:'#666', fontSize:12, marginTop:8, letterSpacing:2}}>ACESSO RESTRITO</p>
-          
-          <div style={{marginTop:32}}>
-            <label style={{fontSize:10, color:'#FFC300', letterSpacing:2}}>EMAIL</label>
-            <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="dioguin01267@gmail.com" style={{width:'100%', background:'#151515', padding:14, marginTop:8, border:'1px solid #333', color:'white', outline:'none'}} />
-          </div>
-          
-          <div style={{marginTop:16}}>
-            <label style={{fontSize:10, color:'#FFC300', letterSpacing:2}}>SENHA</label>
-            <input value={senha} onChange={e=>setSenha(e.target.value)} type="password" placeholder="••••••••" style={{width:'100%', background:'#151515', padding:14, marginTop:8, border:'1px solid #333', color:'white', outline:'none'}} />
-          </div>
-
-          {erro && <div style={{marginTop:16, background:'rgba(255,0,0,0.1)', border:'1px solid red', padding:12, color:'#ff6666', fontSize:12}}>{erro}</div>}
-
-          <button onClick={fazerLogin} style={{width:'100%', background:'#FFC300', color:'black', fontWeight:900, padding:16, marginTop:24, letterSpacing:2, cursor:'pointer'}}>ENTRAR NO SISTEMA</button>
-          
-          <p style={{marginTop:16, color:'#444', fontSize:10, textAlign:'center'}}>Transporte Executivo Premium - BH e Região</p>
-        </div>
-      </div>
-    )
-  }
-
-  // SITE COMPLETO PRETO E DOURADO
   return(
     <div style={{background:'black', color:'white', fontFamily:'sans-serif'}}>
-      {/* HEADER */}
-      <header style={{position:'fixed', top:0, width:'100%', background:'rgba(0,0,0,0.95)', borderBottom:'1px solid #1a1a1a', zIndex:50, display:'flex', justifyContent:'space-between', alignItems:'center', padding:'16px 40px'}}>
-        <h1 style={{letterSpacing:4, fontSize:18}}>MG <span style={{color:'#FFC300', fontWeight:900}}>EXECUTIVE</span></h1>
-        <div style={{display:'flex', gap:12}}>
-          <button onClick={()=>setShowReservas(!showReservas)} style={{border:'1px solid #FFC300', color:'#FFC300', padding:'8px 16px', fontSize:11, letterSpacing:1}}>RESERVAS</button>
-          <button onClick={()=>setLogado(false)} style={{background:'#222', color:'#666', padding:'8px 16px', fontSize:11}}>SAIR</button>
+      <header style={{position:'fixed', top:0, width:'100%', background:'rgba(0,0,0,0.95)', borderBottom:'1px solid #1a1a1a', zIndex:50, display:'flex', justifyContent:'space-between', alignItems:'center', padding:'16px 24px'}}>
+        <h1 style={{letterSpacing:4, fontSize:18, fontWeight:900}}>MG <span style={{color:'#FFC300'}}>EXECUTIVE</span></h1>
+        <div style={{display:'flex', gap:10}}>
+          <button onClick={()=>window.open('https://wa.me/5531988811362?text=Quero%20reservar%20MG%20Executive')} style={{background:'#FFC300', color:'black', fontWeight:900, padding:'10px 20px', fontSize:12, border:'none', cursor:'pointer'}}>RESERVAR</button>
+          <button onClick={()=>setShowLogin(true)} style={{border:'1px solid #333', background:'transparent', color:'#888', padding:'10px 14px', fontSize:11, cursor:'pointer'}}>{isAdmin ? 'DONO ✓' : 'ADMIN'}</button>
         </div>
       </header>
 
-      {showReservas && (
-        <div style={{position:'fixed', top:70, right:20, background:'#0a0a0a', border:'1px solid #FFC300', padding:20, zIndex:60, width:320}}>
-          <h3 style={{color:'#FFC300', fontSize:14}}>Painel Admin</h3>
-          <p style={{color:'#666', fontSize:12, marginTop:8}}>Logado como dioguin01267@gmail.com</p>
-          <div style={{marginTop:16, background:'#151515', padding:12, border:'1px solid #222', fontSize:12, color:'#888'}}>Nenhuma reserva ainda. Quando cliente solicitar pelo WhatsApp, você gerencia aqui.</div>
+      {showLogin && (
+        <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.9)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center', padding:20}}>
+          <div style={{background:'#0a0a0a', padding:28, width:'100%', maxWidth:360, border:'1px solid #FFC300'}}>
+            <div style={{display:'flex', justifyContent:'space-between'}}><h3 style={{color:'#FFC300', fontWeight:900}}>ACESSO DONO</h3><button onClick={()=>setShowLogin(false)} style={{background:'none', border:'none', color:'#666', cursor:'pointer'}}>X</button></div>
+            <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Seu email" style={{width:'100%', background:'#151515', padding:12, marginTop:20, border:'1px solid #333', color:'white'}} />
+            <input value={senha} onChange={e=>setSenha(e.target.value)} type="password" placeholder="Senha dioguin012!" style={{width:'100%', background:'#151515', padding:12, marginTop:12, border:'1px solid #333', color:'white'}} />
+            {erro && <div style={{marginTop:12, color:'#ff6666', fontSize:12}}>{erro}</div>}
+            <button onClick={fazerLogin} style={{width:'100%', background:'#FFC300', color:'black', fontWeight:900, padding:12, marginTop:16, border:'none', cursor:'pointer'}}>ENTRAR</button>
+          </div>
         </div>
       )}
 
-      {/* HERO */}
-      <div style={{minHeight:'100vh', display:'flex', flexDirection:'column', justifyContent:'center', padding:'100px 40px 40px', background:'linear-gradient(180deg, black 0%, #0a0a0a 100%)'}}>
-        <p style={{color:'#FFC300', letterSpacing:6, fontSize:11}}>BELO HORIZONTE • CONFINS • BRASIL</p>
-        <h2 style={{fontSize:72, fontWeight:900, marginTop:24, lineHeight:0.9, letterSpacing:-2}}>PRECISÃO E<br/><span style={{color:'#FFC300'}}>EXCLUSIVIDADE</span><br/>EM CADA TRAJETO.</h2>
-        <p style={{color:'#666', marginTop:24, maxWidth:600, lineHeight:1.6}}>Transporte executivo premium. Frota Corolla 2024 preto, SUVs de luxo, motorista bilíngue, atendimento 24h. O padrão que executivos de BH confiam.</p>
-        <div style={{marginTop:32, display:'flex', gap:16, flexWrap:'wrap'}}>
-          <button onClick={()=>window.open('https://wa.me/5531988811362?text=Ol%C3%A1%20MG%20Executive%2C%20quero%20solicitar%20uma%20reserva%20executiva')} style={{background:'#FFC300', color:'black', fontWeight:900, padding:'18px 36px', letterSpacing:1}}>RESERVAR AGORA - WHATSAPP</button>
-          <div style={{display:'flex', alignItems:'center', gap:12, border:'1px solid #222', padding:'0 20px'}}>
-            <span style={{color:'#FFC300'}}>●</span><span style={{fontSize:12, color:'#888'}}>DISPONÍVEL 24H</span>
-          </div>
+      {isAdmin && (
+        <div style={{marginTop:70, background:'#111', border:'1px solid #FFC300', padding:12, margin: '70px 20px 0 20px', display:'flex', justifyContent:'space-between'}}>
+          <p style={{color:'#FFC300', fontSize:11}}>✓ LOGADO COMO DONO: {email}</p>
+          <button onClick={()=>setIsAdmin(false)} style={{background:'#222', color:'white', border:'none', padding:'4px 10px', fontSize:10, cursor:'pointer'}}>SAIR</button>
         </div>
-        <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?q=80&w=2070" style={{marginTop:60, width:'100%', height:400, objectFit:'cover', opacity:0.6, border:'1px solid #222'}} alt="Carro luxo" />
+      )}
+
+      <div style={{padding:'120px 24px 30px'}}>
+        <p style={{color:'#FFC300', letterSpacing:6, fontSize:11}}>FROTA COROLLA 2024 BRANCO • BH E REGIÃO</p>
+        <h2 style={{fontSize:52, fontWeight:900, marginTop:20, lineHeight:0.9}}>PRECISÃO E<br/><span style={{color:'#FFC300'}}>EXCLUSIVIDADE</span><br/>EM CADA TRAJETO.</h2>
+        <div style={{marginTop:28, display:'grid', gridTemplateColumns:'1fr 1fr', gap:12}}>
+          <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=800&auto=format&fit=crop" style={{width:'100%', height:250, objectFit:'cover', border:'1px solid #222'}} alt="Corolla 2024 Branco" />
+          <img src="https://images.unsplash.com/photo-1603584173870-7f23fdae1b7a?q=80&w=800&auto=format&fit=crop" style={{width:'100%', height:250, objectFit:'cover', border:'1px solid #222'}} alt="Corolla Branco Lateral" />
+        </div>
+        <p style={{color:'#FFC300', fontSize:11, marginTop:10, letterSpacing:2, fontWeight:900}}>COROLLA 2024 XEI BRANCO PEROLIZADO - BANCOS COURO BEGE / TETO SOLAR</p>
+        <p style={{color:'#666', fontSize:12, marginTop:6}}>A frota mais nova de BH. Limpo, cheiroso, água gelada, WiFi e motorista uniformizado.</p>
+        <button onClick={()=>window.open('https://wa.me/5531988811362?text=Ol%C3%A1%20MG%20Executive,%20quero%20reservar%20o%20Corolla%20Branco')} style={{marginTop:20, background:'#FFC300', color:'black', fontWeight:900, padding:'16px 32px', border:'none', cursor:'pointer'}}>RESERVAR COROLLA BRANCO NO WHATSAPP</button>
       </div>
 
-      {/* VEICULOS */}
-      <div style={{padding:80, borderTop:'1px solid #111'}}>
-        <h3 style={{color:'#FFC300', letterSpacing:4, fontSize:12}}>NOSSA FROTA</h3>
-        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))', gap:20, marginTop:32}}>
-          <div style={{background:'#0a0a0a', border:'1px solid #1a1a1a', padding:24}}>
-            <img src="https://images.unsplash.com/photo-1623869675781-80b17a6d2a8d?q=80&w=1000" style={{width:'100%', height:200, objectFit:'cover'}} alt="Corolla" />
-            <h4 style={{marginTop:16, fontWeight:900}}>SEDAN PREMIUM</h4>
-            <p style={{color:'#FFC300', fontSize:12, marginTop:4}}>Corolla 2024 Preto • Couro • WiFi • Água</p>
-            <p style={{color:'#666', fontSize:12, marginTop:8}}>Ideal para executivo, aeroporto, reuniões.</p>
-          </div>
-          <div style={{background:'#0a0a0a', border:'1px solid #1a1a1a', padding:24}}>
-            <img src="https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?q=80&w=1000" style={{width:'100%', height:200, objectFit:'cover'}} alt="SUV" />
-            <h4 style={{marginTop:16, fontWeight:900}}>SUV EXECUTIVO</h4>
-            <p style={{color:'#FFC300', fontSize:12, marginTop:4}}>SW4 / Compass • 4x4 • Porta-malas amplo</p>
-            <p style={{color:'#666', fontSize:12, marginTop:8}}>Família, bagagem grande, Inhotim, estrada.</p>
-          </div>
+      <div style={{padding:'30px 24px', background:'#050505', borderTop:'1px solid #111'}}>
+        <h3 style={{fontSize:28, fontWeight:900}}>DESTINOS <span style={{color:'#FFC300'}}>MAIS PROCURADOS</span></h3>
+        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(260px, 1fr))', gap:14, marginTop:20}}>
+          <div style={{background:'#0a0a0a', border:'1px solid #1a1a1a'}}><img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=800&auto=format&fit=crop" style={{width:'100%', height:160, objectFit:'cover'}} alt="Confins"/><div style={{padding:14}}><p style={{color:'#FFC300', fontSize:10}}>40 MIN • MAIS PEDIDO</p><p style={{fontWeight:900, marginTop:4}}>CONFINS CNF</p><p style={{color:'#666', fontSize:11}}>Transfer BH x Confins 24h</p></div></div>
+          <div style={{background:'#0a0a0a', border:'1px solid #1a1a1a'}}><img src="https://images.unsplash.com/photo-1544985361-b420d7a77043?q=80&w=800&auto=format&fit=crop" style={{width:'100%', height:160, objectFit:'cover'}} alt="Ouro Preto"/><div style={{padding:14}}><p style={{color:'#FFC300', fontSize:10}}>1H30 • TURISMO</p><p style={{fontWeight:900, marginTop:4}}>OURO PRETO</p><p style={{color:'#666', fontSize:11}}>Cidade histórica UNESCO</p></div></div>
+          <div style={{background:'#0a0a0a', border:'1px solid #1a1a1a'}}><img src="https://images.unsplash.com/photo-1518998053901-5348d3961a04?q=80&w=800&auto=format&fit=crop" style={{width:'100%', height:160, objectFit:'cover'}} alt="Inhotim"/><div style={{padding:14}}><p style={{color:'#FFC300', fontSize:10}}>1H10 • CULTURA</p><p style={{fontWeight:900, marginTop:4}}>INHOTIM</p><p style={{color:'#666', fontSize:11}}>Museu a céu aberto</p></div></div>
+          <div style={{background:'#0a0a0a', border:'1px solid #1a1a1a'}}><img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=800&auto=format&fit=crop" style={{width:'100%', height:160, objectFit:'cover'}} alt="Tiradentes"/><div style={{padding:14}}><p style={{color:'#FFC300', fontSize:10}}>3H • FIM DE SEMANA</p><p style={{fontWeight:900, marginTop:4}}>TIRADENTES</p><p style={{color:'#666', fontSize:11}}>Gastronomia premium</p></div></div>
         </div>
       </div>
 
-      {/* DESTINOS */}
-      <div style={{padding:80, background:'#050505', borderTop:'1px solid #111', borderBottom:'1px solid #111'}}>
-        <h3 style={{fontSize:36, fontWeight:900}}>DESTINOS <span style={{color:'#FFC300'}}>PREMIUM</span></h3>
-        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:16, marginTop:32}}>
-          {[
-            {nome:'CONFINS CNF', tempo:'40min', desc:'Aeroporto Internacional'},
-            {nome:'PAMPULHA PLU', tempo:'20min', desc:'Aeroporto Pampulha'},
-            {nome:'GUARULHOS GRU', tempo:'6h', desc:'São Paulo'},
-            {nome:'OURO PRETO', tempo:'1h30', desc:'Cidade histórica'},
-            {nome:'TIRADENTES', tempo:'3h', desc:'Destino turístico'},
-            {nome:'INHOTIM', tempo:'1h10', desc:'Museu a céu aberto'},
-          ].map(d=>(
-            <div key={d.nome} style={{border:'1px solid #222', padding:20, background:'black'}}>
-              <p style={{color:'#FFC300', fontSize:11, letterSpacing:2}}>{d.tempo}</p>
-              <p style={{fontWeight:900, marginTop:8}}>{d.nome}</p>
-              <p style={{color:'#555', fontSize:11, marginTop:4}}>{d.desc}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* CTA FINAL */}
-      <div style={{padding:'80px 40px', textAlign:'center'}}>
-        <h3 style={{fontSize:42, fontWeight:900}}>PRONTO PARA<br/><span style={{color:'#FFC300'}}>RODAR COM EXCELÊNCIA?</span></h3>
-        <p style={{color:'#666', marginTop:16}}>Atendimento via WhatsApp 24h - (31) 98881-1362</p>
-        <button onClick={()=>window.open('https://wa.me/5531988811362?text=Ol%C3%A1%20MG%20Executive%2C%20quero%20solicitar%20uma%20reserva')} style={{marginTop:32, background:'#FFC300', color:'black', fontWeight:900, padding:'20px 48px', fontSize:16, letterSpacing:2}}>FALAR NO WHATSAPP AGORA</button>
-        <p style={{color:'#333', fontSize:10, marginTop:40, letterSpacing:3}}>MG EXECUTIVE © 2025 • BELO HORIZONTE • TRANSPORTE DE LUXO</p>
+      <div style={{padding:'50px 24px', textAlign:'center', borderTop:'1px solid #111'}}>
+        <h3 style={{fontSize:32, fontWeight:900}}>COROLLA BRANCO TE ESPERANDO</h3>
+        <p style={{color:'#666', marginTop:10}}>WhatsApp (31) 98881-1362 - Atendimento 24h</p>
+        <button onClick={()=>window.open('https://wa.me/5531988811362')} style={{marginTop:20, background:'#FFC300', color:'black', fontWeight:900, padding:'18px 40px', border:'none', cursor:'pointer'}}>CHAMAR NO WHATSAPP</button>
+        <p style={{color:'#222', fontSize:9, marginTop:30, letterSpacing:3}}>MG EXECUTIVE • BH PRIME TRANSFER • 2025</p>
       </div>
     </div>
   )
