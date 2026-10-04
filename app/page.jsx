@@ -1,148 +1,153 @@
 'use client'
 import { useState, useEffect } from 'react'
 
+const FOTO_EXTERNA = "https://images.unsplash.com/photo-1623869675781-80b90a8d2d8e?q=80&w=1200&auto=format&fit=crop"
+const FOTO_INTERNA = "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=800&auto=format&fit=crop"
+
 export default function Home(){
   const [showLogin, setShowLogin] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [erro, setErro] = useState('')
-  const [aba, setAba] = useState('geral')
+  const [aba, setAba] = useState('agenda')
   const [corridas, setCorridas] = useState([])
+  const [showAdd, setShowAdd] = useState(false)
+  const [novo, setNovo] = useState({cliente:'', telefone:'', destino:'Confins CNF', data:'', valor:'', status:'Agendada'})
 
   useEffect(()=>{
-    const salvas = localStorage.getItem('mg_corridas')
-    if(salvas) setCorridas(JSON.parse(salvas))
-    else setCorridas([
-      {id:1, cliente:'Dr. Ricardo', destino:'Confins CNF', data:'04/10/2026', valor:180, status:'Concluída'},
-      {id:2, cliente:'Ana Paula', destino:'Ouro Preto', data:'05/10/2026', valor:450, status:'Agendada'},
-      {id:3, cliente:'Empresa Vale', destino:'Inhotim', data:'06/10/2026', valor:380, status:'Agendada'},
-    ])
+    const salvas = localStorage.getItem('mg_exec_v5')
+    if(salvas){ setCorridas(JSON.parse(salvas)) }
+    else { setCorridas([{id:1, cliente:'Dr. Ricardo', telefone:'31 99999-0001', destino:'Confins CNF', data:'2026-10-04', valor:180, status:'Concluída'}]) }
   },[])
+  useEffect(()=>{ if(corridas.length) localStorage.setItem('mg_exec_v5', JSON.stringify(corridas)) }, [corridas])
 
-  useEffect(()=>{ localStorage.setItem('mg_corridas', JSON.stringify(corridas)) }, [corridas])
-
-  const fazerLogin = () => {
-    const e = email.toLowerCase().trim()
-    const s = senha.trim()
-    if((e === 'dioguin01267@gmail.com' || e === 'diogodungacr7@gmail.com') && s === 'dioguin012!'){
-      setIsAdmin(true); setShowLogin(false); setErro('')
-    } else { setErro('Acesso negado!') }
+  const login = () => {
+    const e=email.toLowerCase().trim(); const s=senha.trim()
+    if((e==='dioguin01267@gmail.com'||e==='diogodungacr7@gmail.com')&&s==='dioguin012!'){ setIsAdmin(true); setShowLogin(false); setErro('') }
+    else setErro('Dados incorretos!')
   }
 
-  const faturamentoTotal = corridas.reduce((a,b)=>a+b.valor,0)
+  const adicionar = () => {
+    if(!novo.cliente||!novo.valor) return alert('Preencha cliente e valor!')
+    setCorridas([{id:Date.now(), cliente:novo.cliente, telefone:novo.telefone, destino:novo.destino, data:novo.data||new Date().toISOString().split('T')[0], valor:Number(novo.valor), status:novo.status},...corridas])
+    setNovo({cliente:'', telefone:'', destino:'Confins CNF', data:'', valor:'', status:'Agendada'}); setShowAdd(false)
+  }
+
+  const total = corridas.reduce((a,b)=>a+b.valor,0)
+  const concluidas = corridas.filter(c=>c.status==='Concluída')
   const agendadas = corridas.filter(c=>c.status==='Agendada')
 
-  // SE FOR DONO, MOSTRA PAINEL COMPLETO
+  // ===== PAINEL ADMIN TOTALMENTE SEPARADO - NÃO AFETA CLIENTE =====
   if(isAdmin){
-    return (
-      <div style={{background:'#080808', minHeight:'100vh', color:'white', fontFamily:'sans-serif', padding:20}}>
-        <header style={{display:'flex', justifyContent:'space-between', alignItems:'center', borderBottom:'1px solid #1a1a1a', paddingBottom:16}}>
-          <h1 style={{fontWeight:900, letterSpacing:3}}>MG <span style={{color:'#FFC300'}}>EXECUTIVE</span> <span style={{fontSize:10, color:'#666'}}>PAINEL DONO</span></h1>
-          <div style={{display:'flex', gap:10}}>
-            <button onClick={()=>setIsAdmin(false)} style={{background:'#111', border:'1px solid #333', color:'#aaa', padding:'8px 14px', borderRadius:8, cursor:'pointer'}}>VER SITE CLIENTE</button>
-            <button onClick={()=>{setIsAdmin(false); setShowLogin(false)}} style={{background:'#FFC300', color:'black', fontWeight:900, padding:'8px 14px', borderRadius:8, border:'none', cursor:'pointer'}}>SAIR</button>
-          </div>
-        </header>
-
-        <div style={{display:'flex', gap:8, marginTop:20, flexWrap:'wrap'}}>
-          <button onClick={()=>setAba('geral')} style={{background: aba==='geral'?'#FFC300':'#111', color: aba==='geral'?'black':'#888', fontWeight:900, padding:'10px 16px', borderRadius:20, border:'none', cursor:'pointer'}}>GERAL</button>
-          <button onClick={()=>setAba('agenda')} style={{background: aba==='agenda'?'#FFC300':'#111', color: aba==='agenda'?'black':'#888', fontWeight:900, padding:'10px 16px', borderRadius:20, border:'none', cursor:'pointer'}}>AGENDAMENTOS ({agendadas.length})</button>
-          <button onClick={()=>setAba('historico')} style={{background: aba==='historico'?'#FFC300':'#111', color: aba==='historico'?'black':'#888', fontWeight:900, padding:'10px 16px', borderRadius:20, border:'none', cursor:'pointer'}}>HISTÓRICO</button>
-          <button onClick={()=>setAba('fatura')} style={{background: aba==='fatura'?'#FFC300':'#111', color: aba==='fatura'?'black':'#888', fontWeight:900, padding:'10px 16px', borderRadius:20, border:'none', cursor:'pointer'}}>FATURAMENTO</button>
+    return(
+      <div style={{background:'#080808', minHeight:'100vh', color:'white', fontFamily:'sans-serif'}}>
+        <div style={{padding:16, borderBottom:'1px solid #1a1a1a', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+          <div><p style={{fontWeight:900, letterSpacing:2}}>MG <span style={{color:'#FFC300'}}>EXECUTIVE</span></p><p style={{fontSize:10, color:'#555'}}>PAINEL DONO • DADOS REAIS • AUTO SAVE</p></div>
+          <button onClick={()=>setIsAdmin(false)} style={{background:'#FFC300', color:'black', fontWeight:900, padding:'10px 16px', borderRadius:8, border:'none', cursor:'pointer', fontSize:12}}>VOLTAR AO SITE CLIENTE</button>
         </div>
 
-        {aba==='geral' && (
-          <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:14, marginTop:24}}>
-            <div style={{background:'#111', border:'1px solid #1a1a1a', padding:20, borderRadius:12}}><p style={{color:'#666', fontSize:11}}>FATURAMENTO TOTAL</p><p style={{fontSize:28, fontWeight:900, color:'#FFC300', marginTop:6}}>R$ {faturamentoTotal}</p></div>
-            <div style={{background:'#111', border:'1px solid #1a1a1a', padding:20, borderRadius:12}}><p style={{color:'#666', fontSize:11}}>CORRIDAS AGENDADAS</p><p style={{fontSize:28, fontWeight:900, marginTop:6}}>{agendadas.length}</p></div>
-            <div style={{background:'#111', border:'1px solid #1a1a1a', padding:20, borderRadius:12}}><p style={{color:'#666', fontSize:11}}>CORRIDAS CONCLUÍDAS</p><p style={{fontSize:28, fontWeight:900, marginTop:6}}>{corridas.filter(c=>c.status==='Concluída').length}</p></div>
-            <div style={{background:'#111', border:'1px solid #1a1a1a', padding:20, borderRadius:12}}><p style={{color:'#666', fontSize:11}}>SEU CARRO</p><p style={{fontSize:14, fontWeight:900, marginTop:6}}>COROLLA 2024 BRANCO • BR 262</p></div>
-          </div>
-        )}
+        <div style={{padding:16, display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10}}>
+          <div style={{background:'#111', border:'1px solid #1a1a1a', padding:14, borderRadius:12}}><p style={{fontSize:9, color:'#666'}}>FATURAMENTO TOTAL</p><p style={{fontSize:22, fontWeight:900, color:'#FFC300', marginTop:4}}>R$ {total}</p></div>
+          <div style={{background:'#111', border:'1px solid #1a1a1a', padding:14, borderRadius:12}}><p style={{fontSize:9, color:'#666'}}>CONCLUÍDAS</p><p style={{fontSize:22, fontWeight:900, color:'#4ade80', marginTop:4}}>{concluidas.length}</p><p style={{fontSize:9, color:'#444'}}>R$ {concluidas.reduce((a,b)=>a+b.valor,0)}</p></div>
+          <div style={{background:'#111', border:'1px solid #1a1a1a', padding:14, borderRadius:12}}><p style={{fontSize:9, color:'#666'}}>AGENDADAS</p><p style={{fontSize:22, fontWeight:900, color:'#FFC300', marginTop:4}}>{agendadas.length}</p><p style={{fontSize:9, color:'#444'}}>R$ {agendadas.reduce((a,b)=>a+b.valor,0)}</p></div>
+        </div>
 
-        {aba==='agenda' && (
-          <div style={{marginTop:20, background:'#111', borderRadius:12, overflow:'hidden', border:'1px solid #1a1a1a'}}>
-            {agendadas.map(c=>(
-              <div key={c.id} style={{display:'flex', justifyContent:'space-between', padding:16, borderBottom:'1px solid #1a1a1a'}}>
-                <div><p style={{fontWeight:900}}>{c.cliente} • {c.destino}</p><p style={{color:'#666', fontSize:12}}>{c.data} • R$ {c.valor}</p></div>
-                <button onClick={()=>{setCorridas(corridas.map(x=>x.id===c.id?{...x, status:'Concluída'}:x))}} style={{background:'#FFC300', color:'black', border:'none', padding:'8px 12px', borderRadius:8, fontWeight:900, cursor:'pointer', fontSize:11}}>CONCLUIR</button>
+        <div style={{padding:'0 16px', display:'flex', gap:8}}>
+          <button onClick={()=>setAba('agenda')} style={{flex:1, background:aba==='agenda'?'#FFC300':'#1a1a1a', color:aba==='agenda'?'black':'#777', fontWeight:900, padding:12, borderRadius:10, border:'none', fontSize:11, cursor:'pointer'}}>AGENDADAS ({agendadas.length})</button>
+          <button onClick={()=>setAba('historico')} style={{flex:1, background:aba==='historico'?'#FFC300':'#1a1a1a', color:aba==='historico'?'black':'#777', fontWeight:900, padding:12, borderRadius:10, border:'none', fontSize:11, cursor:'pointer'}}>TODAS ({corridas.length})</button>
+        </div>
+
+        <div style={{padding:16}}>
+          <button onClick={()=>setShowAdd(!showAdd)} style={{width:'100%', background: showAdd?'#222':'#FFC300', color: showAdd?'#888':'black', fontWeight:900, padding:14, borderRadius:12, border:'none', cursor:'pointer'}}>{showAdd?'FECHAR':' + ADICIONAR ATENDIMENTO REAL'}</button>
+
+          {showAdd && (
+            <div style={{marginTop:12, background:'#111', border:'1px solid #FFC300', padding:14, borderRadius:12}}>
+              <input value={novo.cliente} onChange={e=>setNovo({...novo, cliente:e.target.value})} placeholder="Nome cliente *" style={{width:'100%', background:'#000', border:'1px solid #222', padding:12, borderRadius:8, color:'white'}}/>
+              <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginTop:8}}>
+                <input value={novo.telefone} onChange={e=>setNovo({...novo, telefone:e.target.value})} placeholder="WhatsApp" style={{background:'#000', border:'1px solid #222', padding:12, borderRadius:8, color:'white'}}/>
+                <input value={novo.valor} onChange={e=>setNovo({...novo, valor:e.target.value})} type="number" placeholder="Valor R$ *" style={{background:'#000', border:'1px solid #222', padding:12, borderRadius:8, color:'white'}}/>
+              </div>
+              <select value={novo.destino} onChange={e=>setNovo({...novo, destino:e.target.value})} style={{width:'100%', background:'#000', border:'1px solid #222', padding:12, borderRadius:8, color:'white', marginTop:8}}>
+                <option>Confins CNF</option><option>Ouro Preto</option><option>Inhotim</option><option>Tiradentes</option><option>BH Centro</option><option>Outro</option>
+              </select>
+              <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginTop:8}}>
+                <input value={novo.data} onChange={e=>setNovo({...novo, data:e.target.value})} type="date" style={{background:'#000', border:'1px solid #222', padding:12, borderRadius:8, color:'white'}}/>
+                <select value={novo.status} onChange={e=>setNovo({...novo, status:e.target.value})} style={{background:'#000', border:'1px solid #222', padding:12, borderRadius:8, color:'white'}}><option>Agendada</option><option>Concluída</option></select>
+              </div>
+              <button onClick={adicionar} style={{width:'100%', background:'#FFC300', color:'black', fontWeight:900, padding:12, borderRadius:8, border:'none', marginTop:10, cursor:'pointer'}}>SALVAR • JÁ SOMA NO FATURAMENTO</button>
+              <p style={{fontSize:9, color:'#555', marginTop:8, textAlign:'center'}}>Ao concluir, o valor soma automático em Faturamento Real</p>
+            </div>
+          )}
+
+          <div style={{marginTop:14, background:'#111', borderRadius:12, border:'1px solid #1a1a1a', overflow:'hidden'}}>
+            {(aba==='agenda'?agendadas:corridas).map(c=>(
+              <div key={c.id} style={{padding:12, borderBottom:'1px solid #1a1a1a', display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                <div><p style={{fontWeight:900, fontSize:13}}>{c.cliente} <span style={{fontWeight:400, color:'#666', fontSize:11}}>{c.telefone}</span></p><p style={{fontSize:11, color:'#666'}}>{c.destino} • {c.data} • R$ {c.valor}</p></div>
+                <div style={{display:'flex', flexDirection:'column', gap:4, alignItems:'flex-end'}}>
+                  <span style={{fontSize:8, fontWeight:900, padding:'4px 8px', borderRadius:10, background: c.status==='Concluída'?'#052e16':'#332800', color: c.status==='Concluída'?'#4ade80':'#FFC300'}}>{c.status}</span>
+                  {c.status==='Agendada' && <button onClick={()=>setCorridas(corridas.map(x=>x.id===c.id?{...x, status:'Concluída'}:x))} style={{background:'#FFC300', color:'black', fontWeight:900, fontSize:9, padding:'6px 10px', borderRadius:6, border:'none', cursor:'pointer'}}>CONCLUIR E SOMAR</button>}
+                  <button onClick={()=>setCorridas(corridas.filter(x=>x.id!==c.id))} style={{background:'none', border:'none', color:'#333', fontSize:9, cursor:'pointer'}}>apagar</button>
+                </div>
               </div>
             ))}
           </div>
-        )}
-
-        {aba==='historico' && (
-          <div style={{marginTop:20}}>
-            <button onClick={()=>{const cli=prompt('Nome cliente?'); const dest=prompt('Destino?'); const val=Number(prompt('Valor R$?')||0); if(cli&&dest) setCorridas([{id:Date.now(), cliente:cli, destino:dest, data:new Date().toLocaleDateString(), valor:val, status:'Agendada'},...corridas])}} style={{background:'#FFC300', color:'black', fontWeight:900, padding:'12px 20px', borderRadius:8, border:'none', cursor:'pointer', marginBottom:12}}>+ NOVA CORRIDA</button>
-            <div style={{background:'#111', borderRadius:12, overflow:'hidden', border:'1px solid #1a1a1a'}}>
-              {corridas.map(c=>(
-                <div key={c.id} style={{display:'flex', justifyContent:'space-between', padding:14, borderBottom:'1px solid #1a1a1a', fontSize:13}}>
-                  <span>{c.data} - {c.cliente} - {c.destino}</span><span style={{color: c.status==='Concluída'?'#4ade80':'#FFC300', fontWeight:900}}>{c.status} • R$ {c.valor}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {aba==='fatura' && (
-          <div style={{marginTop:20, background:'#111', padding:20, borderRadius:12, border:'1px solid #1a1a1a'}}>
-            <p style={{fontWeight:900, fontSize:18}}>FATURAMENTO DETALHADO</p>
-            <p style={{marginTop:10, color:'#888'}}>Total Bruto: <span style={{color:'#FFC300', fontWeight:900}}>R$ {faturamentoTotal}</span></p>
-            <p style={{marginTop:6, color:'#888'}}>Média por corrida: R$ {(faturamentoTotal/(corridas.length||1)).toFixed(0)}</p>
-            <div style={{marginTop:16, background:'#080808', padding:12, borderRadius:8}}><p style={{fontSize:12, color:'#555'}}>Dica: Isso aqui salva no seu celular automaticamente. Quando concluir corrida, já soma no faturamento.</p></div>
-          </div>
-        )}
+        </div>
       </div>
     )
   }
 
-  // PÁGINA DO CLIENTE (SEM DANIFICAR)
+  // ===== SITE CLIENTE - NUNCA É ALTERADO PELO PAINEL =====
   return(
     <div style={{background:'#050505', color:'white', fontFamily:'sans-serif'}}>
-      <header style={{position:'fixed', top:0, width:'100%', background:'rgba(5,5,5,0.85)', backdropFilter:'blur(12px)', borderBottom:'1px solid #1a1a1a', zIndex:50, display:'flex', justifyContent:'space-between', alignItems:'center', padding:'16px 24px'}}>
-        <h1 style={{letterSpacing:4, fontSize:18, fontWeight:900}}>MG <span style={{color:'#FFC300'}}>EXECUTIVE</span></h1>
-        <div style={{display:'flex', gap:10}}>
-          <button onClick={()=>window.open('https://wa.me/5531988811362')} style={{background:'#FFC300', color:'black', fontWeight:900, padding:'12px 22px', fontSize:12, border:'none', borderRadius:8, cursor:'pointer'}}>RESERVAR</button>
-          <button onClick={()=>setShowLogin(true)} style={{background:'#111', border:'1px solid #222', color:'#666', padding:'12px 16px', fontSize:11, borderRadius:8, cursor:'pointer'}}>ADMIN</button>
+      <header style={{position:'fixed', top:0, width:'100%', background:'rgba(5,5,5,0.85)', backdropFilter:'blur(12px)', borderBottom:'1px solid #1a1a1a', zIndex:50, display:'flex', justifyContent:'space-between', alignItems:'center', padding:'14px 20px'}}>
+        <h1 style={{letterSpacing:3, fontSize:16, fontWeight:900}}>MG <span style={{color:'#FFC300'}}>EXECUTIVE</span></h1>
+        <div style={{display:'flex', gap:8}}>
+          <button onClick={()=>window.open('https://wa.me/5531988811362')} style={{background:'#FFC300', color:'black', fontWeight:900, padding:'10px 18px', fontSize:11, border:'none', borderRadius:8, cursor:'pointer'}}>RESERVAR AGORA</button>
+          <button onClick={()=>setShowLogin(true)} style={{background:'#111', border:'1px solid #222', color:'#555', padding:'10px 12px', fontSize:10, borderRadius:8, cursor:'pointer'}}>ADMIN</button>
         </div>
       </header>
 
       {showLogin && (
         <div style={{position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', backdropFilter:'blur(8px)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center', padding:20}}>
-          <div style={{background:'#0f0f0f', padding:32, width:'100%', maxWidth:380, border:'1px solid #222', borderRadius:16}}>
-            <div style={{display:'flex', justifyContent:'space-between'}}><h3 style={{fontWeight:900, letterSpacing:2}}>ACESSO <span style={{color:'#FFC300'}}>DONO</span></h3><button onClick={()=>setShowLogin(false)} style={{background:'none', border:'none', color:'#666', cursor:'pointer', fontSize:18}}>✕</button></div>
-            <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email do dono" style={{width:'100%', background:'#151515', padding:14, marginTop:24, border:'1px solid #222', borderRadius:8, color:'white'}} />
-            <input value={senha} onChange={e=>setSenha(e.target.value)} type="password" placeholder="Senha privada" style={{width:'100%', background:'#151515', padding:14, marginTop:12, border:'1px solid #222', borderRadius:8, color:'white'}} />
-            {erro && <div style={{marginTop:12, color:'#ff5555', fontSize:12}}>{erro}</div>}
-            <button onClick={fazerLogin} style={{width:'100%', background:'#FFC300', color:'black', fontWeight:900, padding:14, marginTop:16, border:'none', borderRadius:8, cursor:'pointer'}}>ENTRAR NO PAINEL</button>
+          <div style={{background:'#0f0f0f', padding:28, width:'100%', maxWidth:360, border:'1px solid #222', borderRadius:16}}>
+            <h3 style={{fontWeight:900, letterSpacing:1}}>ACESSO <span style={{color:'#FFC300'}}>DONO</span></h3>
+            <p style={{fontSize:11, color:'#555', marginTop:4}}>Painel separado • Não afeta o site do cliente</p>
+            <input value={email} onChange={e=>setEmail(e.target.value)} placeholder="Email dono" style={{width:'100%', background:'#151515', padding:12, marginTop:16, border:'1px solid #222', borderRadius:8, color:'white'}} />
+            <input value={senha} onChange={e=>setSenha(e.target.value)} type="password" placeholder="Senha privada" style={{width:'100%', background:'#151515', padding:12, marginTop:8, border:'1px solid #222', borderRadius:8, color:'white'}} />
+            {erro && <p style={{color:'#ff5555', fontSize:11, marginTop:8}}>{erro}</p>}
+            <button onClick={login} style={{width:'100%', background:'#FFC300', color:'black', fontWeight:900, padding:12, marginTop:12, border:'none', borderRadius:8, cursor:'pointer'}}>ENTRAR NO PAINEL REAL</button>
+            <button onClick={()=>setShowLogin(false)} style={{width:'100%', background:'transparent', color:'#444', padding:8, marginTop:6, border:'none', cursor:'pointer', fontSize:11}}>Voltar ao site</button>
           </div>
         </div>
       )}
 
-      <div style={{padding:'130px 24px 40px', maxWidth:1200, margin:'0 auto'}}>
-        <p style={{color:'#FFC300', letterSpacing:6, fontSize:10, fontWeight:700}}>FROTA PRÓPRIA • FOTO REAL • COROLLA 2024 BRANCO</p>
-        <h2 style={{fontSize:'clamp(40px, 8vw, 68px)', fontWeight:900, marginTop:20, lineHeight:0.9}}>O SEU TEMPO<br/>MERECE <span style={{color:'#FFC300'}}>RESPEITO.</span></h2>
-        <div style={{marginTop:28, display:'grid', gridTemplateColumns:'1.2fr 0.8fr', gap:14}}>
-          <img src="https://images.unsplash.com/photo-1623869675781-80b90a8d2d8e?q=80&w=1200&auto=format&fit=crop" style={{width:'100%', height:420, objectFit:'cover', borderRadius:16, border:'1px solid #1a1a1a'}} alt="Corolla Branco Executive" />
-          <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?q=80&w=800&auto=format&fit=crop" style={{width:'100%', height:420, objectFit:'cover', borderRadius:16, border:'1px solid #1a1a1a'}} alt="Corolla Detalhe" />
+      <div style={{padding:'100px 20px 20px', maxWidth:1100, margin:'0 auto'}}>
+        <p style={{color:'#FFC300', letterSpacing:5, fontSize:9, fontWeight:700}}>COROLLA 2024 BRANCO PEROLIZADO • FROTA PRÓPRIA • EXECUTIVO REAL</p>
+        <h2 style={{fontSize:'clamp(36px, 7vw, 62px)', fontWeight:900, marginTop:14, lineHeight:0.9, letterSpacing:-1}}>O SEU TEMPO<br/>MERECE <span style={{color:'#FFC300'}}>RESPEITO.</span></h2>
+
+        <div style={{marginTop:22, display:'grid', gridTemplateColumns:'1.2fr 0.8fr', gap:12}}>
+          <div style={{position:'relative', borderRadius:16, overflow:'hidden', border:'1px solid #1a1a1a'}}>
+            <img src={FOTO_EXTERNA} style={{width:'100%', height:400, objectFit:'cover'}} alt="Corolla 2024 Branco Executivo MG" />
+            <div style={{position:'absolute', bottom:10, left:10, background:'rgba(0,0,0,0.7)', padding:'6px 12px', borderRadius:20, fontSize:9, letterSpacing:1}}>COROLLA 2024 BRANCO • AEROPORTO • FROTA PRÓPRIA</div>
+          </div>
+          <div style={{position:'relative', borderRadius:16, overflow:'hidden', border:'1px solid #1a1a1a'}}>
+            <img src={FOTO_INTERNA} style={{width:'100%', height:400, objectFit:'cover'}} alt="Interior Couro Bege Executivo" />
+            <div style={{position:'absolute', bottom:10, left:10, background:'rgba(0,0,0,0.7)', padding:'6px 12px', borderRadius:20, fontSize:9, letterSpacing:1}}>COURO BEGE • ÁGUA • WIFI • PREMIUM</div>
+          </div>
         </div>
-        <p style={{color:'#FFC300', fontSize:11, marginTop:10, letterSpacing:2, fontWeight:900}}>SEU COROLLA 2024 BRANCO PEROLIZADO - TROQUE PELAS SUAS FOTOS QUANDO SUBIR NA PASTA PUBLIC</p>
-        <button onClick={()=>window.open('https://wa.me/5531988811362?text=Quero%20reservar%20o%20Corolla%20branco%20MG%20Executive')} style={{marginTop:20, background:'#FFC300', color:'black', fontWeight:900, padding:'16px 32px', border:'none', borderRadius:30, cursor:'pointer'}}>RESERVAR MEU COROLLA BRANCO</button>
+
+        <div style={{marginTop:16, display:'flex', gap:8, flexWrap:'wrap'}}>
+          <div style={{background:'#111', border:'1px solid #1a1a1a', padding:'10px 16px', borderRadius:30, fontSize:10, fontWeight:700}}>✓ MOTORISTA UNIFORMIZADO</div>
+          <div style={{background:'#111', border:'1px solid #1a1a1a', padding:'10px 16px', borderRadius:30, fontSize:10, fontWeight:700}}>✓ SEM TAXI • 100% EXECUTIVO</div>
+          <div style={{background:'#FFC300', color:'black', padding:'10px 16px', borderRadius:30, fontSize:10, fontWeight:900}}>COROLLA 2024 XEI</div>
+        </div>
       </div>
 
-      <div style={{padding:'30px 24px', maxWidth:1200, margin:'0 auto'}}>
-        <h3 style={{fontSize:28, fontWeight:900}}>DESTINOS <span style={{color:'#FFC300'}}>PREMIUM</span></h3>
-        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(260px, 1fr))', gap:14, marginTop:20}}>
-          <div style={{background:'#0a0a0a', border:'1px solid #1a1a1a', borderRadius:12, overflow:'hidden'}}><img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?q=80&w=800&auto=format&fit=crop" style={{width:'100%', height:160, objectFit:'cover'}} alt="Confins"/><div style={{padding:14}}><p style={{color:'#FFC300', fontSize:10}}>40 MIN • MAIS PEDIDO</p><p style={{fontWeight:900}}>CONFINS CNF</p></div></div>
-          <div style={{background:'#0a0a0a', border:'1px solid #1a1a1a', borderRadius:12, overflow:'hidden'}}><img src="https://images.unsplash.com/photo-1544985361-b420d7a77043?q=80&w=800&auto=format&fit=crop" style={{width:'100%', height:160, objectFit:'cover'}} alt="Ouro Preto"/><div style={{padding:14}}><p style={{color:'#FFC300', fontSize:10}}>1H30 • TURISMO</p><p style={{fontWeight:900}}>OURO PRETO</p></div></div>
-          <div style={{background:'#0a0a0a', border:'1px solid #1a1a1a', borderRadius:12, overflow:'hidden'}}><img src="https://images.unsplash.com/photo-1518998053901-5348d3961a04?q=80&w=800&auto=format&fit=crop" style={{width:'100%', height:160, objectFit:'cover'}} alt="Inhotim"/><div style={{padding:14}}><p style={{color:'#FFC300', fontSize:10}}>1H10 • CULTURA</p><p style={{fontWeight:900}}>INHOTIM</p></div></div>
-          <div style={{background:'#0a0a0a', border:'1px solid #1a1a1a', borderRadius:12, overflow:'hidden'}}><img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=800&auto=format&fit=crop" style={{width:'100%', height:160, objectFit:'cover'}} alt="Tiradentes"/><div style={{padding:14}}><p style={{color:'#FFC300', fontSize:10}}>3H • FIM DE SEMANA</p><p style={{fontWeight:900}}>TIRADENTES</p></div></div>
-        </div>
-      </div>
-
-      <div style={{padding:'60px 24px', textAlign:'center', borderTop:'1px solid #111', marginTop:20}}>
-        <button onClick={()=>window.open('https://wa.me/5531988811362')} style={{background:'#FFC300', color:'black', fontWeight:900, padding:'18px 40px', border:'none', borderRadius:30, cursor:'pointer'}}>WHATSAPP (31) 98881-1362</button>
+      <div style={{padding:'20px 20px 60px', textAlign:'center', borderTop:'1px solid #111', marginTop:20}}>
+        <h3 style={{fontSize:28, fontWeight:900}}>VAMOS RODAR?</h3>
+        <button onClick={()=>window.open('https://wa.me/5531988811362?text=Ol%C3%A1%20MG%20Executive,%20vi%20o%20Corolla%20branco%20no%20site%20e%20quero%20reservar')} style={{marginTop:16, background:'#FFC300', color:'black', fontWeight:900, padding:'16px 36px', border:'none', borderRadius:30, cursor:'pointer'}}>WHATSAPP (31) 98881-1362</button>
+        <p style={{color:'#222', fontSize:9, marginTop:24, letterSpacing:3}}>MG EXECUTIVE • BH • SITE CLIENTE SEPARADO DO PAINEL DONO</p>
       </div>
     </div>
   )
